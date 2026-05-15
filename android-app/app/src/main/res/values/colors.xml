@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background_dark">#0a0e17</color>
+    <color name="surface_dark">#111822</color>
+    <color name="neon_blue">#00d4ff</color>
+    <color name="neon_green">#00ff88</color>
+    <color name="neon_red">#ff3366</color>
+    <color name="text_primary">#ffffff</color>
+    <color name="text_secondary">#8899aa</color>
+    <color name="text_dim">#556677</color>
+    <color name="btn_glass_bg">#1a334455</color>
+    <color name="btn_glass_border">#334455</color>
+    <color name="border_subtle">#1affffff</color>
+</resources>

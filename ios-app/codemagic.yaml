@@ -1,0 +1,38 @@
+workflows:
+  build-ipa:
+    name: Build RifatCam Pro IPA
+    max_build_duration: 30
+    instance_type: mac_mini_m2
+    environment:
+      ios_signing:
+        provisioning_profile: ""
+        certificate: ""
+      groups:
+        - app_store_credentials
+      vars:
+        APP_ID: com.rifatcam.pro
+        APP_NAME: RifatCam Pro
+        XCODE_WORKSPACE: ""
+        XCODE_SCHEME: RifatCamPro
+      xcode: 15.2
+    scripts:
+      - name: Install XcodeGen
+        script: |
+          brew install xcodegen
+      - name: Generate Xcode project
+        script: |
+          cd ios-app
+          xcodegen
+      - name: Build IPA
+        script: |
+          cd ios-app
+          xcodebuild -scheme RifatCamPro -sdk iphoneos -configuration release \
+            -derivedDataPath ../build \
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO \
+            build
+    artifacts:
+      - build/Build/Products/Release-iphoneos/*.app
+    publishing:
+      email:
+        recipients:
+          - user@example.com

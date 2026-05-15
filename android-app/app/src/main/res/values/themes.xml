@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.RifatCamPro" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#00d4ff</item>
+        <item name="colorPrimaryVariant">#0088cc</item>
+        <item name="colorOnPrimary">#0a0e17</item>
+        <item name="colorSecondary">#00ff88</item>
+        <item name="colorSecondaryVariant">#00cc66</item>
+        <item name="colorOnSecondary">#0a0e17</item>
+        <item name="android:colorBackground">#0a0e17</item>
+        <item name="colorOnBackground">#ffffff</item>
+        <item name="colorSurface">#111822</item>
+        <item name="colorOnSurface">#ffffff</item>
+        <item name="android:statusBarColor">#0a0e17</item>
+        <item name="android:navigationBarColor">#0a0e17</item>
+        <item name="android:windowBackground">@color/background_dark</item>
+    </style>
+
+    <color name="background_dark">#0a0e17</color>
+    <color name="neon_blue">#00d4ff</color>
+    <color name="neon_green">#00ff88</color>
+    <color name="text_primary">#ffffff</color>
+    <color name="text_secondary">#8899aa</color>
+</resources>

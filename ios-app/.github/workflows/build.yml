@@ -1,0 +1,34 @@
+name: Build RifatCam Pro iOS
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      
+      - name: Generate Xcode project
+        run: |
+          cd ios-app
+          xcodegen
+      
+      - name: Build (unsigned)
+        run: |
+          cd ios-app
+          xcodebuild -scheme RifatCamPro -sdk iphoneos -configuration debug \
+            -derivedDataPath ../build \
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO \
+            build
+      
+      - name: Upload .app
+        uses: actions/upload-artifact@v4
+        with:
+          name: RifatCamPro.app
+          path: build/Build/Products/Debug-iphoneos/*.app

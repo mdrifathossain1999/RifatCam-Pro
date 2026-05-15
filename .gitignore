@@ -1,0 +1,35 @@
+# ─── Python ───────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+*.spec
+venv/
+.env
+
+# ─── PyInstaller ─────────────────────────────
+desktop-client/dist/
+desktop-client/build/
+desktop-client/*.spec
+
+# ─── Android ─────────────────────────────────
+android-app/.gradle/
+android-app/build/
+android-app/app/build/
+android-app/local.properties
+android-app/.idea/
+*.iml
+*.apk
+*.aab
+*.keystore
+
+# ─── OS ──────────────────────────────────────
+Thumbs.db
+.DS_Store
+*.log
+
+# ─── RifatCam Data ──────────────────────────
+# (User data directory - commented out to keep in repo if needed)
+# .rifatcam/
