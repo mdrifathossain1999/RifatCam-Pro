@@ -8,27 +8,47 @@ on:
 jobs:
   build:
     runs-on: macos-14
+    defaults:
+      run:
+        working-directory: ios-app
+
     steps:
       - uses: actions/checkout@v4
-      
+
+      - name: List directory structure
+        run: find . -name "*.swift" -o -name "*.plist" -o -name "project.yml" | head -20
+
       - name: Install XcodeGen
-        run: brew install xcodegen
-      
+        run: |
+          brew list xcodegen 2>/dev/null || brew install xcodegen
+          xcodegen --version
+
       - name: Generate Xcode project
         run: |
-          cd ios-app
-          xcodegen
-      
-      - name: Build (unsigned)
+          xcodegen --spec project.yml
+          ls -la *.xcodeproj 2>/dev/null || echo "No xcodeproj generated"
+
+      - name: Build .app (unsigned)
         run: |
-          cd ios-app
-          xcodebuild -scheme RifatCamPro -sdk iphoneos -configuration debug \
-            -derivedDataPath ../build \
-            CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO \
+          PROJECT=$(ls *.xcodeproj 2>/dev/null | head -1)
+          if [ -z "$PROJECT" ]; then
+            echo "ERROR: No Xcode project found"
+            ls -la
+            exit 1
+          fi
+          echo "Building project: $PROJECT"
+          xcodebuild -project "$PROJECT" \
+            -scheme RifatCamPro \
+            -sdk iphoneos \
+            -configuration debug \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_ALLOWED=NO \
             build
-      
+
       - name: Upload .app
         uses: actions/upload-artifact@v4
         with:
-          name: RifatCamPro.app
-          path: build/Build/Products/Debug-iphoneos/*.app
+          name: RifatCamPro-debug
+          path: ios-app/build/Build/Products/Debug-iphoneos/*.app
+          compression-level: 9
