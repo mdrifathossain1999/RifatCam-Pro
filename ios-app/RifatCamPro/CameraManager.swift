@@ -24,6 +24,7 @@ class CameraManager: NSObject {
     var targetHeight: Int32 = 720
 
     var previewLayer: AVCaptureVideoPreviewLayer?
+    var onReady: (() -> Void)?
 
     override init() {
         super.init()
@@ -97,6 +98,9 @@ class CameraManager: NSObject {
             guard let self = self, !self.captureSession.isRunning else { return }
             self.captureSession.startRunning()
             print("[Camera] Session started")
+            DispatchQueue.main.async {
+                self.onReady?()
+            }
         }
     }
 

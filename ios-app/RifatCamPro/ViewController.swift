@@ -52,25 +52,24 @@ class ViewController: UIViewController, CameraManagerDelegate {
                 return
             }
             self.cameraManager.delegate = self
+            self.cameraManager.onReady = { [weak self] in
+                self?.addPreviewLayer()
+            }
             self.cameraManager.setupCamera()
             self.cameraManager.startSession()
-            self.addPreviewLayer()
         }
     }
 
     private func addPreviewLayer() {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            let layer = AVCaptureVideoPreviewLayer(session: self.cameraManager.captureSession)
-            layer.frame = self.previewContainer.bounds
-            layer.videoGravity = .resizeAspectFill
-            layer.cornerRadius = 12
-            layer.masksToBounds = true
-            self.previewContainer.layer.insertSublayer(layer, at: 0)
-            self.previewContainer.layer.borderWidth = 1
-            self.previewContainer.layer.borderColor = UIColor(red: 0, green: 212/255, blue: 1, alpha: 0.15).cgColor
-            self.previewContainer.layer.cornerRadius = 12
-        }
+        let layer = AVCaptureVideoPreviewLayer(session: cameraManager.captureSession)
+        layer.frame = previewContainer.bounds
+        layer.videoGravity = .resizeAspectFill
+        layer.cornerRadius = 12
+        layer.masksToBounds = true
+        previewContainer.layer.insertSublayer(layer, at: 0)
+        previewContainer.layer.borderWidth = 1
+        previewContainer.layer.borderColor = UIColor(red: 0, green: 212/255, blue: 1, alpha: 0.15).cgColor
+        previewContainer.layer.cornerRadius = 12
     }
 
     // MARK: - CameraManagerDelegate
@@ -398,8 +397,10 @@ class ViewController: UIViewController, CameraManagerDelegate {
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        if let layer = previewContainer.layer.sublayers?.first as? AVCaptureVideoPreviewLayer {
-            layer.frame = previewContainer.bounds
+        for sublayer in previewContainer.layer.sublayers ?? [] {
+            if let layer = sublayer as? AVCaptureVideoPreviewLayer {
+                layer.frame = previewContainer.bounds
+            }
         }
     }
 
