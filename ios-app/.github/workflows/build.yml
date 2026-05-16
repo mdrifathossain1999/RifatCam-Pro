@@ -11,14 +11,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install XcodeGen
-        run: brew list xcodegen 2>/dev/null || brew install xcodegen
-
-      - name: Generate Xcode project at repo root
-        run: |
-          xcodegen --spec ios-app/project-ci.yml --project .
-          ls -la *.xcodeproj
-
       - name: Build unsigned .app
         run: |
           xcodebuild -project RifatCamPro.xcodeproj \
