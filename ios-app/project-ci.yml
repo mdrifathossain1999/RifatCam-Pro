@@ -1,0 +1,27 @@
+name: RifatCamPro
+options:
+  bundleIdPrefix: com.rifatcam
+  deploymentTarget:
+    iOS: "15.0"
+  xcodeVersion: "15.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    INFOPLIST_FILE: "ios-app/RifatCamPro/Info.plist"
+    DEVELOPMENT_TEAM: ""
+
+targets:
+  RifatCamPro:
+    type: application
+    platform: iOS
+    sources:
+      - path: ios-app/RifatCamPro
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.rifatcam.pro
+      INFOPLIST_FILE: ios-app/RifatCamPro/Info.plist
+      ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+      ENABLE_USER_SCRIPT_SANDBOXING: "NO"
+    info:
+      path: ios-app/RifatCamPro/Info.plist
