@@ -1,5 +1,4 @@
 import UIKit
-import SystemConfiguration.CaptiveNetwork
 
 struct NetworkUtils {
     static let streamPort: UInt16 = 8080

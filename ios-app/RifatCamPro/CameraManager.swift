@@ -1,5 +1,6 @@
 import UIKit
 import AVFoundation
+import CoreVideo
 
 protocol CameraManagerDelegate: AnyObject {
     func cameraManagerDidCaptureFrame(jpegData: Data)

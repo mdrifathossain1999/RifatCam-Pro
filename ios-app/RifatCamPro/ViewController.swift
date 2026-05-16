@@ -44,7 +44,8 @@ class ViewController: UIViewController, CameraManagerDelegate {
     // MARK: - Camera Setup
     private func setupCamera() {
         cameraManager.requestPermission { [weak self] granted in
-            guard let self = self, granted else {
+            guard let self = self else { return }
+            guard granted else {
                 let alert = UIAlertController(title: "Camera Required", message: "Camera permission is needed for streaming.", preferredStyle: .alert)
                 alert.addAction(UIAlertAction(title: "OK", style: .default))
                 self.present(alert, animated: true)
