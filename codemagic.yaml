@@ -24,7 +24,7 @@ workflows:
             CODE_SIGNING_ALLOWED=NO \
             build
     artifacts:
-      - build/Build/Products/Release-iphoneos/*.app
+      - build/Build/Products/*-iphoneos/*.app
     publishing:
       email:
         recipients:
