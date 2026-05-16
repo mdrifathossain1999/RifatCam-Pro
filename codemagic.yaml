@@ -17,14 +17,16 @@ workflows:
           brew install xcodegen
       - name: Generate Xcode project
         script: |
-          xcodegen --spec ios-app/project-ci.yml --project .
+          cd ios-app
+          xcodegen --spec project-ci.yml --project .
       - name: Build unsigned .app
         script: |
+          cd ios-app
           xcodebuild -project RifatCamPro.xcodeproj \
             -scheme RifatCamPro \
             -sdk iphoneos \
             -configuration release \
-            -derivedDataPath build \
+            -derivedDataPath ../build \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_ALLOWED=NO \
             build
