@@ -1,4 +1,4 @@
-import UIKit
+import Foundation
 
 struct NetworkUtils {
     static let streamPort: UInt16 = 8080
@@ -15,10 +15,10 @@ struct NetworkUtils {
         while true {
             let interface = ptr.pointee
             let addrFamily = interface.ifa_addr.pointee.sa_family
-            if addrFamily == UInt8(AF_INET) {
+            if addrFamily == sa_family_t(AF_INET) {
                 let name = String(cString: interface.ifa_name)
                 if name == "en0" {
-                    var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+                    var hostname = [CChar](repeating: 0, count: 1025)
                     getnameinfo(interface.ifa_addr, socklen_t(interface.ifa_addr.pointee.sa_len),
                                &hostname, socklen_t(hostname.count), nil, 0, NI_NUMERICHOST)
                     address = String(cString: hostname)
