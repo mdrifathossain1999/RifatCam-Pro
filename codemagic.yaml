@@ -10,7 +10,7 @@ workflows:
         APP_ID: com.rifatcam.pro
         APP_NAME: RifatCam Pro
         XCODE_SCHEME: RifatCamPro
-      xcode: "15.2"
+      xcode: latest
     scripts:
       - name: Build unsigned .app
         script: |
