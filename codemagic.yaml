@@ -12,6 +12,12 @@ workflows:
         XCODE_SCHEME: RifatCamPro
       xcode: latest
     scripts:
+      - name: Install XcodeGen
+        script: |
+          brew install xcodegen
+      - name: Generate Xcode project
+        script: |
+          xcodegen --spec ios-app/project-ci.yml --project .
       - name: Build unsigned .app
         script: |
           xcodebuild -project RifatCamPro.xcodeproj \

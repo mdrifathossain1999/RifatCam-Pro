@@ -25,6 +25,9 @@ android-app/.idea/
 *.aab
 *.keystore
 
+# ─── XcodeGen generated ─────────────────────
+RifatCamPro.xcodeproj/
+
 # ─── OS ──────────────────────────────────────
 Thumbs.db
 .DS_Store
