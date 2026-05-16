@@ -27,6 +27,7 @@ android-app/.idea/
 
 # ─── XcodeGen generated ─────────────────────
 RifatCamPro.xcodeproj/
+build/
 
 # ─── OS ──────────────────────────────────────
 Thumbs.db

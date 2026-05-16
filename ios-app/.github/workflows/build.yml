@@ -11,9 +11,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install XcodeGen & Generate project
+        run: |
+          brew install xcodegen
+          xcodegen --spec project-ci.yml --project .
+
       - name: Build unsigned .app
         run: |
-          xcodebuild -project RifatCamPro.xcodeproj \
+          xcodebuild \
+            -project RifatCamPro.xcodeproj \
             -scheme RifatCamPro \
             -sdk iphoneos \
             -configuration debug \
