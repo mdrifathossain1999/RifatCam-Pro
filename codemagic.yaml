@@ -14,21 +14,17 @@ workflows:
         APP_NAME: RifatCam Pro
         XCODE_WORKSPACE: ""
         XCODE_SCHEME: RifatCamPro
-      xcode: 15.2
+      xcode: "15.2"
     scripts:
-      - name: Install XcodeGen
+      - name: Build unsigned .app
         script: |
-          brew install xcodegen
-      - name: Generate Xcode project
-        script: |
-          cd ios-app
-          xcodegen
-      - name: Build IPA
-        script: |
-          cd ios-app
-          xcodebuild -scheme RifatCamPro -sdk iphoneos -configuration release \
-            -derivedDataPath ../build \
-            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO \
+          xcodebuild -project RifatCamPro.xcodeproj \
+            -scheme RifatCamPro \
+            -sdk iphoneos \
+            -configuration release \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_ALLOWED=NO \
             build
     artifacts:
       - build/Build/Products/Release-iphoneos/*.app
