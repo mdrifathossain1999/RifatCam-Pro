@@ -25,7 +25,7 @@ struct NetworkUtils {
                 }
             }
             guard let next = interface.ifa_next else { break }
-            ptr = next.pointee
+            ptr = next
         }
         freeifaddrs(ifaddr)
         return address
