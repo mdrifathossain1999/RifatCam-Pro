@@ -26,8 +26,6 @@ targets:
       ENABLE_TESTABILITY: "NO"
       COPY_PHASE_STRIP: "YES"
       STRIP_INSTALLED_PRODUCT: "YES"
-    info:
-      path: ios-app/RifatCamPro/Info.plist
     configs:
       Debug: debug
       Release: release
