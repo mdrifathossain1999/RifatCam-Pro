@@ -23,5 +23,21 @@ targets:
       INFOPLIST_FILE: ios-app/RifatCamPro/Info.plist
       ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
       ENABLE_USER_SCRIPT_SANDBOXING: "NO"
+      ENABLE_TESTABILITY: "NO"
+      COPY_PHASE_STRIP: "YES"
+      STRIP_INSTALLED_PRODUCT: "YES"
     info:
       path: ios-app/RifatCamPro/Info.plist
+    configs:
+      Debug: debug
+      Release: release
+
+schemes:
+  RifatCamPro:
+    build:
+      targets:
+        RifatCamPro: all
+    run:
+      config: Release
+    archive:
+      config: Release

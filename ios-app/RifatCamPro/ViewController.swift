@@ -2,6 +2,15 @@ import UIKit
 import AVFoundation
 
 class ViewController: UIViewController, CameraManagerDelegate {
+    // Loading indicator shown while camera is being prepared
+    private let loadingLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Loading..."
+        label.textColor = .white
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
 
     // MARK: - Properties
     private let cameraManager = CameraManager()
@@ -61,6 +70,7 @@ class ViewController: UIViewController, CameraManagerDelegate {
     }
 
     private func addPreviewLayer() {
+        // Hide loading indicator once preview is ready
         let layer = AVCaptureVideoPreviewLayer(session: cameraManager.captureSession)
         layer.frame = previewContainer.bounds
         layer.videoGravity = .resizeAspectFill
@@ -70,6 +80,7 @@ class ViewController: UIViewController, CameraManagerDelegate {
         previewContainer.layer.borderWidth = 1
         previewContainer.layer.borderColor = UIColor(red: 0, green: 212/255, blue: 1, alpha: 0.15).cgColor
         previewContainer.layer.cornerRadius = 12
+        loadingLabel.isHidden = true
     }
 
     // MARK: - CameraManagerDelegate
@@ -195,6 +206,12 @@ class ViewController: UIViewController, CameraManagerDelegate {
 
     // MARK: - UI Setup
     private func setupUI() {
+        // Add loading label
+        view.addSubview(loadingLabel)
+        NSLayoutConstraint.activate([
+            loadingLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            loadingLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
         setupTopBar()
         setupPreview()
         setupControls()
