@@ -401,9 +401,8 @@ class ViewController: UIViewController, CameraManagerDelegate {
             qrImageView.heightAnchor.constraint(equalToConstant: 200),
         ])
 
-        // Set preview container height based on screen
-        let previewHeight = view.bounds.height * 0.45
-        previewContainer.heightAnchor.constraint(equalToConstant: previewHeight).isActive = true
+        // Set preview container to 45% of view height
+        previewContainer.heightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.heightAnchor, multiplier: 0.45).isActive = true
     }
 
     private func showAlert(title: String, message: String) {

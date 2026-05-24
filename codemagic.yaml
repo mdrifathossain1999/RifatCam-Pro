@@ -23,6 +23,19 @@ workflows:
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_ALLOWED=NO \
             build
+      - name: Strip debug artifacts from .app
+        script: |
+          APP_PATH=$(ls build/Build/Products/*-iphoneos/*.app 2>/dev/null | head -1)
+          if [ -d "$APP_PATH" ]; then
+            echo "Stripping debug dylibs from $APP_PATH"
+            rm -f "$APP_PATH/RifatCamPro.debug.dylib" 2>/dev/null
+            rm -f "$APP_PATH/__preview.dylib" 2>/dev/null
+            echo "Remaining files:"
+            ls -la "$APP_PATH/"
+          else
+            echo "Warning: .app not found at expected path"
+            find build -name "*.app" -type d
+          fi
     artifacts:
       - build/Build/Products/*-iphoneos/*.app
     publishing:
