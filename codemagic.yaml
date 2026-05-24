@@ -20,24 +20,32 @@ workflows:
             -sdk iphoneos \
             -configuration release \
             -derivedDataPath build \
-            CODE_SIGN_IDENTITY="-" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=YES \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_ALLOWED=NO \
             build
-      - name: Strip debug artifacts from .app
+      - name: Prepare .app for sideloading
         script: |
           APP_PATH=$(find build -name "*.app" -type d -maxdepth 5 2>/dev/null | head -1)
-          if [ -d "$APP_PATH" ]; then
-            echo "Stripping debug dylibs from $APP_PATH"
-            rm -fv "$APP_PATH/RifatCamPro.debug.dylib" 2>/dev/null
-            rm -fv "$APP_PATH/__preview.dylib" 2>/dev/null
-            echo "Remaining files:"
-            ls -la "$APP_PATH/"
-          else
-            echo "ERROR: .app not found! Searching..."
+          if [ ! -d "$APP_PATH" ]; then
+            echo "ERROR: .app not found!"
             find build -type d -maxdepth 8 2>/dev/null
             exit 1
           fi
+          echo "Found .app at: $APP_PATH"
+
+          # Strip debug dylibs
+          rm -fv "$APP_PATH/RifatCamPro.debug.dylib" 2>/dev/null
+          rm -fv "$APP_PATH/__preview.dylib" 2>/dev/null
+
+          # Apply ad-hoc code signature (required on iOS 17+)
+          echo "Applying ad-hoc code signature..."
+          codesign -f -s - "$APP_PATH" 2>&1 || echo "codesign warning (non-fatal)"
+
+          # Verify
+          echo "Final .app contents:"
+          ls -la "$APP_PATH/"
+          echo "Code signature status:"
+          codesign -dv "$APP_PATH" 2>&1 || true
     artifacts:
       - build/Build/Products/*-iphoneos/*.app
     publishing:
