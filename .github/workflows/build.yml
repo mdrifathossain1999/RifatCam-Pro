@@ -25,6 +25,7 @@ jobs:
             -project RifatCamPro.xcodeproj \
             -scheme RifatCamPro \
             -sdk iphoneos \
+            -destination "generic/platform=iOS" \
             -configuration Release \
             -derivedDataPath build \
             CODE_SIGN_IDENTITY="" \
