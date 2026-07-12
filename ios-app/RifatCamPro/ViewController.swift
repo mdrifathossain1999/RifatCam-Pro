@@ -40,7 +40,6 @@ class ViewController: UIViewController, CameraManagerDelegate {
     }
 
     override var prefersStatusBarHidden: Bool { return false }
-    override var preferredStatusBarStyle: UIStatusBarStyle { return .lightContent }
 
     private func setupCamera() {
         cameraManager.requestPermission { [weak self] granted in
@@ -134,7 +133,7 @@ class ViewController: UIViewController, CameraManagerDelegate {
         qrImageView.alpha = 0
         let ip = NetworkUtils.getWiFiAddress() ?? "unknown"
         urlLabel.text = "http://\(ip):\(NetworkUtils.streamPort)"
-        UIView.animate(withDuration: 0.3) { self.qrImageView.alpha = 1 }
+        UIView.animate(withDuration: 0.3) { [weak self] in self?.qrImageView.alpha = 1 }
         DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
             UIView.animate(withDuration: 0.3) { self?.qrImageView.isHidden = true }
         }

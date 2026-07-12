@@ -17,13 +17,27 @@ class CameraManager: NSObject {
     private var currentInput: AVCaptureDeviceInput?
     private let sessionQueue = DispatchQueue(label: "camera.session.queue", qos: .userInitiated)
     private let processingQueue = DispatchQueue(label: "camera.processing.queue", qos: .default)
+    private let ciContext = CIContext()
 
+    private let isStreamingLock = NSLock()
+    private var _isStreaming = false
+    private var isStreaming: Bool {
+        get {
+            isStreamingLock.lock()
+            let val = _isStreaming
+            isStreamingLock.unlock()
+            return val
+        }
+        set {
+            isStreamingLock.lock()
+            _isStreaming = newValue
+            isStreamingLock.unlock()
+        }
+    }
+
+    private let cameraStateLock = NSLock()
     private(set) var usingBackCamera = true
-    private(set) var isStreaming = false
-    var targetWidth: Int32 = 1280
-    var targetHeight: Int32 = 720
 
-    var previewLayer: AVCaptureVideoPreviewLayer?
     var onReady: (() -> Void)?
 
     override init() {
@@ -70,7 +84,9 @@ class CameraManager: NSObject {
                 let input = try AVCaptureDeviceInput(device: initialDevice)
                 if self.captureSession.canAddInput(input) {
                     self.captureSession.addInput(input)
+                    self.cameraStateLock.lock()
                     self.currentInput = input
+                    self.cameraStateLock.unlock()
                 }
             } catch {
                 print("[Camera] Input error: \(error)")
@@ -116,10 +132,14 @@ class CameraManager: NSObject {
     func switchCamera() {
         sessionQueue.async { [weak self] in
             guard let self = self else { return }
-            let newPosition: AVCaptureDevice.Position = self.usingBackCamera ? .front : .back
-            let newDevice: AVCaptureDevice? = newPosition == .back ? self.backCamera : self.frontCamera
 
-            guard let device = newDevice else { return }
+            self.cameraStateLock.lock()
+            let currentUsingBack = self.usingBackCamera
+            let newDevice: AVCaptureDevice? = currentUsingBack ? self.frontCamera : self.backCamera
+            guard let device = newDevice else {
+                self.cameraStateLock.unlock()
+                return
+            }
 
             self.captureSession.beginConfiguration()
             if let input = self.currentInput {
@@ -130,22 +150,20 @@ class CameraManager: NSObject {
                 if self.captureSession.canAddInput(newInput) {
                     self.captureSession.addInput(newInput)
                     self.currentInput = newInput
-                    self.usingBackCamera = newPosition == .back
+                    self.usingBackCamera = !currentUsingBack
                 }
             } catch {
-                // Restore old input
                 if let input = self.currentInput {
                     self.captureSession.addInput(input)
                 }
             }
+            self.cameraStateLock.unlock()
             self.captureSession.commitConfiguration()
-            print("[Camera] Switched to \(newPosition == .back ? "back" : "front") camera")
+            print("[Camera] Switched to \(self.usingBackCamera ? "back" : "front") camera")
         }
     }
 
     func setResolution(width: Int32, height: Int32) {
-        targetWidth = width
-        targetHeight = height
         let preset: AVCaptureSession.Preset
         switch (width, height) {
         case (1920, 1080): preset = .hd1920x1080
@@ -161,7 +179,10 @@ class CameraManager: NSObject {
     }
 
     func toggleFlash() -> Bool {
-        guard usingBackCamera, let device = backCamera, device.hasTorch else { return false }
+        cameraStateLock.lock()
+        let device = usingBackCamera ? backCamera : nil
+        cameraStateLock.unlock()
+        guard let device = device, device.hasTorch else { return false }
         do {
             try device.lockForConfiguration()
             device.torchMode = device.torchMode == .on ? .off : .on
@@ -173,7 +194,10 @@ class CameraManager: NSObject {
     }
 
     func setZoom(_ factor: CGFloat) {
-        guard let device = currentInput?.device else { return }
+        cameraStateLock.lock()
+        let device = currentInput?.device
+        cameraStateLock.unlock()
+        guard let device = device else { return }
         do {
             try device.lockForConfiguration()
             device.videoZoomFactor = max(1.0, min(factor, device.activeFormat.videoMaxZoomFactor))
@@ -196,9 +220,8 @@ extension CameraManager: AVCaptureVideoDataOutputSampleBufferDelegate {
         guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
 
         let ciImage = CIImage(cvPixelBuffer: imageBuffer)
-        let context = CIContext()
 
-        guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else { return }
+        guard let cgImage = ciContext.createCGImage(ciImage, from: ciImage.extent) else { return }
 
         let data = NSMutableData()
         guard let destination = CGImageDestinationCreateWithData(data as CFMutableData, "public.jpeg" as CFString, 1, nil) else { return }

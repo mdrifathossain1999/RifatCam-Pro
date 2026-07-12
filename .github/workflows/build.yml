@@ -54,7 +54,7 @@ jobs:
           zip -r RifatCamPro.ipa Payload
           rm -rf Payload
 
-      - name: Upload .app artifact
+      - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: RifatCamPro-iOS

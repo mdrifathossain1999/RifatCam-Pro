@@ -9,7 +9,6 @@ settings:
   base:
     SWIFT_VERSION: "5.9"
     TARGETED_DEVICE_FAMILY: "1,2"
-    INFOPLIST_FILE: "RifatCamPro/Info.plist"
     DEVELOPMENT_TEAM: ""
 
 targets:
@@ -20,13 +19,7 @@ targets:
       - path: RifatCamPro
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.rifatcam.pro
-      INFOPLIST_FILE: RifatCamPro/Info.plist
       ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
       ENABLE_USER_SCRIPT_SANDBOXING: "NO"
     info:
       path: RifatCamPro/Info.plist
-    preBuildScripts:
-      - name: "Ensure permissions"
-        script: |
-          echo "RifatCam Pro iOS App"
-          echo "Make sure to add NSCameraUsageDescription in Info.plist"

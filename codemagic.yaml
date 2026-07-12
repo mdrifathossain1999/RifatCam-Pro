@@ -8,7 +8,7 @@ workflows:
         APP_ID: com.rifatcam.pro
         APP_NAME: RifatCam Pro
         XCODE_SCHEME: RifatCamPro
-      xcode: latest
+      xcode: 15.4
     scripts:
       - name: Generate Xcode project
         script: brew install xcodegen && xcodegen --spec project-ci.yml --project .

@@ -25,7 +25,6 @@
     <key>UIRequiredDeviceCapabilities</key>
     <array>
         <string>armv7</string>
-        <string>ios-camera</string>
     </array>
     <key>UISupportedInterfaceOrientations</key>
     <array>
@@ -51,9 +50,7 @@
     <key>UIStatusBarStyle</key>
     <string>UIStatusBarStyleLightContent</string>
     <key>UIViewControllerBasedStatusBarAppearance</key>
-    <false/>
-    <key>UIPrerenderedIcon</key>
-    <false/>
+    <true/>
     <key>UIApplicationSceneManifest</key>
     <dict>
         <key>UIApplicationSupportsMultipleScenes</key>

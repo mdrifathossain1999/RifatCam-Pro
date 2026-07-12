@@ -39,6 +39,6 @@ schemes:
       targets:
         RifatCamPro: all
     run:
-      config: Release
+      config: Debug
     archive:
       config: Release

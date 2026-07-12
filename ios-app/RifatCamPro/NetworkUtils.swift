@@ -2,9 +2,6 @@ import Foundation
 
 struct NetworkUtils {
     static let streamPort: UInt16 = 8080
-    static let discoveryPort: UInt16 = 5005
-    static let discoveryMagic = "RIFATCAM_DISCOVER"
-    static let discoveryResponse = "RIFATCAM_HERE"
 
     static func getWiFiAddress() -> String? {
         var address: String?
@@ -14,12 +11,17 @@ struct NetworkUtils {
         var ptr = firstAddr
         while true {
             let interface = ptr.pointee
-            let addrFamily = interface.ifa_addr.pointee.sa_family
+            guard let ifaAddr = interface.ifa_addr else {
+                guard let next = interface.ifa_next else { break }
+                ptr = next
+                continue
+            }
+            let addrFamily = ifaAddr.pointee.sa_family
             if addrFamily == sa_family_t(AF_INET) {
                 let name = String(cString: interface.ifa_name)
                 if name == "en0" {
-                    var hostname = [CChar](repeating: 0, count: 1025)
-                    getnameinfo(interface.ifa_addr, socklen_t(interface.ifa_addr.pointee.sa_len),
+                    var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+                    getnameinfo(ifaAddr, socklen_t(ifaAddr.pointee.sa_len),
                                &hostname, socklen_t(hostname.count), nil, 0, NI_NUMERICHOST)
                     address = String(cString: hostname)
                 }

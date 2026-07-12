@@ -1,8 +1,10 @@
-import UIKit
+import Foundation
 
 class StreamServer {
     private var serverFd: Int32 = -1
-    private var running = false
+    private let serverLock = NSLock()
+    private let runningLock = NSLock()
+    private var _running = false
     private var clients: Set<Int32> = []
     private let clientsLock = NSLock()
     private let serverQueue = DispatchQueue(label: "stream.server.queue", qos: .userInitiated)
@@ -11,6 +13,20 @@ class StreamServer {
 
     var deviceName = "RifatCam iPhone"
     var port: UInt16 = NetworkUtils.streamPort
+
+    private var running: Bool {
+        get {
+            runningLock.lock()
+            let val = _running
+            runningLock.unlock()
+            return val
+        }
+        set {
+            runningLock.lock()
+            _running = newValue
+            runningLock.unlock()
+        }
+    }
 
     func updateJPEG(_ data: Data) {
         jpegLock.lock()
@@ -21,6 +37,7 @@ class StreamServer {
     func start() {
         guard !running else { return }
         running = true
+        signal(SIGPIPE, SIG_IGN)
 
         serverQueue.async { [weak self] in
             self?.runServer()
@@ -29,15 +46,22 @@ class StreamServer {
 
     func stop() {
         running = false
-        clientsLock.lock()
-        for fd in clients {
-            close(fd)
+        let fdToClose: Int32
+        serverLock.lock()
+        fdToClose = serverFd
+        serverFd = -1
+        serverLock.unlock()
+
+        if fdToClose >= 0 {
+            close(fdToClose)
         }
+
+        clientsLock.lock()
+        let snapshot = clients
         clients.removeAll()
         clientsLock.unlock()
-        if serverFd >= 0 {
-            close(serverFd)
-            serverFd = -1
+        for fd in snapshot {
+            close(fd)
         }
     }
 
@@ -49,11 +73,18 @@ class StreamServer {
     }
 
     private func runServer() {
-        serverFd = Darwin.socket(AF_INET, SOCK_STREAM, 0)
-        guard serverFd >= 0 else { print("[Server] socket() failed"); return }
+        let fd = Darwin.socket(AF_INET, SOCK_STREAM, 0)
+        guard fd >= 0 else { print("[Server] socket() failed"); return }
+
+        serverLock.lock()
+        serverFd = fd
+        serverLock.unlock()
 
         var opt: Int = 1
-        setsockopt(serverFd, SOL_SOCKET, SO_REUSEADDR, &opt, socklen_t(MemoryLayout.size(ofValue: opt)))
+        setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, socklen_t(MemoryLayout.size(ofValue: opt)))
+
+        var noSigPipe: Int32 = 1
+        setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &noSigPipe, socklen_t(MemoryLayout.size(ofValue: noSigPipe)))
 
         var addr = sockaddr_in()
         addr.sin_family = sa_family_t(AF_INET)
@@ -63,18 +94,20 @@ class StreamServer {
 
         let bindResult = withUnsafePointer(to: &addr) {
             $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
-                Darwin.bind(serverFd, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
+                Darwin.bind(fd, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
             }
         }
 
         guard bindResult == 0 else {
             print("[Server] bind() failed on port \(port)")
-            close(serverFd)
-            serverFd = -1
+            serverLock.lock()
+            if serverFd == fd { serverFd = -1 }
+            serverLock.unlock()
+            close(fd)
             return
         }
 
-        listen(serverFd, 5)
+        listen(fd, 5)
         print("[Server] Listening on port \(port)")
 
         while running {
@@ -82,7 +115,7 @@ class StreamServer {
             var addrLen = socklen_t(MemoryLayout<sockaddr_in>.size)
             let clientFd = withUnsafeMutablePointer(to: &clientAddr) {
                 $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
-                    Darwin.accept(serverFd, $0, &addrLen)
+                    Darwin.accept(fd, $0, &addrLen)
                 }
             }
 
@@ -91,17 +124,26 @@ class StreamServer {
                 break
             }
 
+            var clientNoSigPipe: Int32 = 1
+            setsockopt(clientFd, SOL_SOCKET, SO_NOSIGPIPE, &clientNoSigPipe, socklen_t(MemoryLayout.size(ofValue: clientNoSigPipe)))
+
             clientsLock.lock()
             clients.insert(clientFd)
             clientsLock.unlock()
 
             DispatchQueue.global(qos: .default).async { [weak self] in
-                self?.handleClient(clientFd)
+                guard let self = self else {
+                    close(clientFd)
+                    return
+                }
+                self.handleClient(clientFd)
             }
         }
 
-        close(serverFd)
-        serverFd = -1
+        serverLock.lock()
+        if serverFd == fd { serverFd = -1 }
+        serverLock.unlock()
+        close(fd)
         print("[Server] Stopped")
     }
 
@@ -158,12 +200,17 @@ class StreamServer {
                 writeString(fd, header)
                 data.withUnsafeBytes { ptr in
                     if let base = ptr.baseAddress {
-                        _ = write(fd, base, data.count)
+                        var offset = 0
+                        while offset < data.count {
+                            let sent = write(fd, base.advanced(by: offset), data.count - offset)
+                            if sent <= 0 { break }
+                            offset += sent
+                        }
                     }
                 }
                 writeString(fd, "\r\n")
             } else {
-                Thread.sleep(forTimeInterval: 0.03)
+                usleep(30_000)
             }
         }
     }
@@ -225,7 +272,12 @@ class StreamServer {
         let data = string.data(using: .utf8)!
         data.withUnsafeBytes { ptr in
             if let base = ptr.baseAddress {
-                _ = write(fd, base, data.count)
+                var offset = 0
+                while offset < data.count {
+                    let sent = write(fd, base.advanced(by: offset), data.count - offset)
+                    if sent <= 0 { break }
+                    offset += sent
+                }
             }
         }
     }
