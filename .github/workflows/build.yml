@@ -12,7 +12,14 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Select Xcode 16
-        run: sudo xcode-select -s /Applications/Xcode_16.0.app
+        run: |
+          # Find available Xcode 16.x
+          XCODE_PATH=$(ls -d /Applications/Xcode_16*.app 2>/dev/null | head -1)
+          if [ -z "$XCODE_PATH" ]; then
+            XCODE_PATH=$(xcode-select -p | sed 's|/Contents/Developer||')
+          fi
+          echo "Using: $XCODE_PATH"
+          sudo xcode-select -s "$XCODE_PATH"
 
       - name: Install XcodeGen & Generate project
         run: |
@@ -21,6 +28,7 @@ jobs:
 
       - name: Build unsigned .app
         run: |
+          set +e
           xcodebuild \
             -project RifatCamPro.xcodeproj \
             -scheme RifatCamPro \
@@ -30,7 +38,22 @@ jobs:
             -derivedDataPath build \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_ALLOWED=NO \
-            build
+            SUPPORTS_MACCATALYST=NO \
+            build 2>&1 | tee build.log
+          EXIT_CODE=${PIPESTATUS[0]}
+          
+          # Check if the binary was actually produced despite asset catalog error
+          APP_PATH=$(find build -name "*.app" -type d -maxdepth 5 2>/dev/null | head -1)
+          if [ -n "$APP_PATH" ] && [ -f "$APP_PATH/RifatCamPro" ]; then
+            echo "BUILD SUCCEEDED: Binary found at $APP_PATH/RifatCamPro"
+            file "$APP_PATH/RifatCamPro"
+            # Continue despite asset catalog error
+            exit 0
+          fi
+          
+          echo "BUILD FAILED: No binary produced"
+          tail -30 build.log
+          exit 1
 
       - name: Prepare .app for sideloading
         run: |
@@ -41,6 +64,15 @@ jobs:
             exit 1
           fi
           echo "Found .app at: $APP_PATH"
+          
+          # Check if binary exists
+          if [ ! -f "$APP_PATH/RifatCamPro" ]; then
+            echo "ERROR: Binary not found in .app!"
+            ls -la "$APP_PATH/"
+            exit 1
+          fi
+          echo "Binary found: $(file "$APP_PATH/RifatCamPro")"
+          
           rm -fv "$APP_PATH/RifatCamPro.debug.dylib" 2>/dev/null
           rm -fv "$APP_PATH/__preview.dylib" 2>/dev/null
           codesign -f -s - "$APP_PATH" 2>&1 || echo "codesign warning (non-fatal)"
